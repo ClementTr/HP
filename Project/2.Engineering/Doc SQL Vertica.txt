@@ -1,0 +1,24 @@
+Liste de toutes les tables des schémas Linky_Config et Linky_Schema
+	[dbadmin@vertinode01 ~]$ vsql -U dbadmin -w password -c "SELECT * FROM all_tables WHERE schema_name IN ('linky_config','linky_schema');"
+ 	schema_name  |     table_id      |          table_name          | table_type | remarks 
+	--------------+-------------------+------------------------------+------------+---------
+	 linky_config | 45035996308422746 | linky_data_failover          | TABLE      | 
+	 linky_config | 45035996308423106 | linky_target                 | TABLE      | 
+	 linky_config | 45035996308428518 | linky_data_failover_view     | VIEW       | 
+	 linky_schema | 45035996308472180 | stream_scheduler             | TABLE      | 
+	 linky_schema | 45035996308472182 | stream_clusters              | TABLE      | 
+	 linky_schema | 45035996308472190 | stream_sources               | TABLE      | 
+	 linky_schema | 45035996308472200 | stream_targets               | TABLE      | 
+	 linky_schema | 45035996308472208 | stream_load_specs            | TABLE      | 
+	 linky_schema | 45035996308472216 | stream_microbatches          | TABLE      | 
+	 linky_schema | 45035996308472228 | stream_microbatch_source_map | TABLE      | 
+	 linky_schema | 45035996308472236 | stream_microbatch_history    | TABLE      | 
+	 linky_schema | 45035996308472566 | stream_events                | TABLE      | 
+	 linky_schema | 45035996308472570 | stream_lock                  | TABLE      | 
+	 linky_schema | 45035996308472612 | stream_scheduler_history     | TABLE      | 
+	 linky_schema | 45035996308474102 | linky_kafka                  | TABLE      | 
+	 linky_schema | 45035996308474106 | linky_kafka_view             | VIEW       | 
+	 linky_schema | 45035996308474108 | linky_kafka_keys             | TABLE      | 
+	(17 rows)
+
+
