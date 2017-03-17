@@ -1,0 +1,55 @@
+01 [kafkaserv] Configuration de Zookeeper - /opt/kafka/config/zookeeper.properties
+02 [kafkaserv] Configuration de Kafka Consumer - /opt/kafka/config/consumer.properties 
+03 [kafkaserv] Configuration de 3 Kafka Brokers - /opt/kafka/config/server.properties, server-1.properties, server-2.properties
+	broker.id=0 ou broker.id=1 ou broker.id=2
+	listeners=PLAINTEXT://10.0.20.23:9092 ou :9093 ou :9094
+	# Switch to enable topic deletion or not, default value is false
+	delete.topic.enable=true
+	log.dirs=/opt/kafka/tmp/kafka-logs ou .../kafka-1-logs ou .../kafka-2-logs
+	#log.retention.hours=168
+	log.retention.hours=0
+	log.retention.minutes=0
+	log.retention.ms=1000
+	zookeeper.connect=10.0.20.23:2181
+04 [kafkaserv] Démarrage de Zookeeper et Kafka - /home/kafkaserv/startEnv.sh
+05 [kafkaserv] Création du Topic - /home/kafkaserv/CreateKafkaTopic.sh
+06 [vertinode01] Configuration du Scheduler - /home/dbadmin/sched.props
+07 [vertinode01] Effacement du Scheduler
+	vkconfig scheduler --drop --conf sched.props
+08 [vertinode01] Creation du schema linky_schema
+	vsql -U dbadmin -w password -c "CREATE SCHEMA linky_schema;"
+09 [vertinode01] Creation du resource pool linky_resource_pool
+	vsql -U dbadmin -w password -c "CREATE RESOURCE POOL linky_resource_pool MEMORYSIZE '10%' PLANNEDCONCURRENCY 1 QUEUETIMEOUT 0;"
+10 [vertinode01] Creation du Scheduler
+	vkconfig scheduler --create --conf sched.props --resource-pool linky_resource_pool --operator dbadmin
+11 [vertinode01] Creation du Cluster
+	vkconfig cluster --create --conf sched.props --cluster linky_cluster --hosts 10.0.20.23:9092,10.0.20.23:9093,10.0.20.23:9094
+12 [vertinode01] Creation de la Source
+	vkconfig source --create --conf sched.props --source topic_linky --cluster linky_cluster --partitions 3
+13 [vertinode01] Creation du Load Spec
+	vkconfig load-spec --create --conf sched.props --load-spec spec_linky --parser KafkaParser --load-method DIRECT
+14 [vertinode01] Creation de la table (flex) de reception des données Linky_Kafka
+	vsql -U dbadmin -w password -c "CREATE FLEX TABLE linky_schema.linky_kafka();"
+15 [vertinode01] Creation de la Target
+	vkconfig target --create --conf sched.props --target-schema linky_schema --target-table linky_kafka
+16 [vertinode01] Creation du microbatch
+	vkconfig microbatch --create --conf sched.props --microbatch linky_batch --target-schema linky_schema --target-table linky_kafka --load-spec spec_linky --add-source topic_linky --add-source-cluster linky_cluster
+17 [vertinode01] Verification de la configuration Vertica
+	vsql -U dbadmin -w password -c "SELECT * FROM linky_schema.stream_scheduler;" ou stream_sources ou stream_clusters ou stream_target ou stream_load_specs ou stream_microbatches
+18 [vertinode01] Configuration du Search Path dans Vertica
+	vsql -U dbadmin -w password -c "SELECT search_path FROM users WHERE user_name='dbadmin';"
+	vsql -U dbadmin -w password -c "ALTER USER dbadmin search_path v_catalog, v_monitor, v_internal, public, linky_schema, linky_config;"
+	vsql -U dbadmin -w password -c "SELECT search_path FROM users WHERE user_name='dbadmin';"
+19 [vertinode01] Modification du schema de la Source [OPTIONEL]
+	vsql -U dbadmin -w password -c "ALTER SOURCE KafkaSource() SET SCHEMA linky_schema;"
+20 [vertinode01] Affectation des droits sur la Source
+	vsql -U dbadmin -w password -c "GRANT ALL ON SOURCE linky_schema.KafkaSource() TO dbadmin;"
+21 [vertinode01] Configuration du Launcher Vertica - /home/dbadmin/sched.start
+22 [vertinode01] Lancement du Launcher Vertica - /home/dbadmin/StartKafkaVertica.sh
+23 [kafkaserv] Lancement du Producer - /home/kafkaserv/Producer.sh
+24 [kafkaserv:2e fenetre] Lancement du Consumer - /home/kafkaserv/Consumer.sh
+25 [kafkaserv] Description du Topic - /home/kafkaserv/DescribeKafkaTopic.sh
+
+	
+
+
